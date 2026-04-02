@@ -13,6 +13,13 @@ interface StudentApi {
     @GET("api/qr/student/{code}")
     suspend fun getStudent(@Path("code") code: String): Response<Student>
 
+    @Multipart
+    @POST("api/qr/student/{code}/avatar")
+    suspend fun uploadAvatar(
+        @Path("code") code: String,
+        @Part file: MultipartBody.Part
+    ): Response<Student>
+
     @GET("api/qr/db-check")
     suspend fun checkDb(): Response<Map<String, Any>>
 }

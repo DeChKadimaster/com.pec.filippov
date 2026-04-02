@@ -1,7 +1,10 @@
 package com.pec.filippov.ui.screens
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,7 +13,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,64 +31,70 @@ fun LoginScreen(
     errorMessage: String? = null
 ) {
     var code by remember { mutableStateOf("") }
-    val primaryBlue = Color(0xFF6797FF) // Adjusted to match the screenshot blue
-    val buttonBlue = Color(0xFF4C7FFF)
-    val inputBackground = Color(0xFFE9E9E9)
+    
+    // Original Color Palette from Screenshot
+    val skyBlue = Color(0xFF6797FF)
+    val buttonBlue = Color(0xFF4C84FF)
+    val outerBg = Color(0xFFF5F5F5)
+    val inputBg = Color(0xFFEBEBEB)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
+            .background(outerBg),
         contentAlignment = Alignment.Center
     ) {
-        // Main Card
-        Card(
+        // Main Light Blue Card
+        Surface(
             modifier = Modifier
                 .fillMaxWidth(0.92f)
                 .fillMaxHeight(0.92f),
-            shape = RoundedCornerShape(50.dp),
-            colors = CardDefaults.cardColors(containerColor = primaryBlue)
+            shape = RoundedCornerShape(60.dp),
+            color = skyBlue,
+            shadowElevation = 4.dp
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 40.dp, start = 24.dp, end = 24.dp),
+                    .padding(horizontal = 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(modifier = Modifier.height(40.dp))
+
                 Text(
                     text = "Вход в аккаунт",
                     color = Color.White,
                     fontSize = 24.sp,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Bold
                 )
-                
+
                 Spacer(modifier = Modifier.height(30.dp))
-                
-                // Logo in Circle
-                Box(
-                    modifier = Modifier
-                        .size(150.dp)
-                        .clip(CircleShape)
-                        .background(Color.White),
-                    contentAlignment = Alignment.Center
+
+                // Logo in White Circle
+                Surface(
+                    modifier = Modifier.size(160.dp),
+                    shape = CircleShape,
+                    color = Color.White
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo),
-                        contentDescription = "Logo",
-                        modifier = Modifier.size(110.dp),
-                        contentScale = ContentScale.Fit
-                    )
+                    Box(contentAlignment = Alignment.Center) {
+                        Image(
+                            painter = painterResource(id = R.drawable.logo),
+                            contentDescription = "Logo",
+                            modifier = Modifier.size(110.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
                 }
-                
+
                 Spacer(modifier = Modifier.height(40.dp))
-                
-                // Greeting Button
+
+                // GOOD DAY Button
                 Button(
                     onClick = { onLoginClick(code) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(75.dp),
-                    shape = RoundedCornerShape(20.dp),
+                        .height(65.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = buttonBlue),
                     enabled = !isLoading
                 ) {
@@ -91,43 +102,44 @@ fun LoginScreen(
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                     } else {
                         Text(
-                            text = "ДОБРЫЙ ДЕНЬ", 
-                            color = Color.White, 
-                            fontSize = 28.sp, 
-                            fontWeight = FontWeight.Normal,
-                            letterSpacing = 1.sp
+                            text = "ДОБРЫЙ ДЕНЬ",
+                            color = Color.White,
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Normal
                         )
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(50.dp))
-                
+
                 // Input Section
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "Код доступа", 
-                        color = Color.White, 
-                        fontSize = 22.sp, 
-                        fontWeight = FontWeight.SemiBold
+                        text = "Код доступа",
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 12.dp)
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
+
                     TextField(
                         value = code,
                         onValueChange = { code = it },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(75.dp)
-                            .clip(RoundedCornerShape(35.dp)),
-                        placeholder = { Text("Ввести код доступа", color = Color(0xFFAAAAAA), fontSize = 18.sp) },
+                            .height(65.dp)
+                            .clip(RoundedCornerShape(32.dp)),
+                        placeholder = { 
+                            Text("Ввести код доступа", color = Color.Gray, fontSize = 18.sp) 
+                        },
                         colors = TextFieldDefaults.colors(
-                            focusedContainerColor = inputBackground,
-                            unfocusedContainerColor = inputBackground,
-                            disabledContainerColor = inputBackground,
+                            focusedContainerColor = inputBg,
+                            unfocusedContainerColor = inputBg,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent,
-                            errorIndicatorColor = Color.Transparent
+                            cursorColor = skyBlue
                         ),
                         singleLine = true
                     )
@@ -136,10 +148,11 @@ fun LoginScreen(
                 if (errorMessage != null) {
                     Spacer(modifier = Modifier.height(20.dp))
                     Text(
-                        text = errorMessage, 
-                        color = Color(0xFFFF5252), 
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
+                        text = errorMessage,
+                        color = Color.Red,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                 }
             }

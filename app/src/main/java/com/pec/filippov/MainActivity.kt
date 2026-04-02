@@ -15,6 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.pec.filippov.ui.screens.LoginScreen
 import com.pec.filippov.ui.screens.ProfileScreen
+import com.pec.filippov.ui.screens.AvatarPickerScreen
 import com.pec.filippov.ui.theme.PECQRTheme
 import com.pec.filippov.viewmodel.StudentViewModel
 
@@ -64,14 +65,20 @@ class MainActivity : ComponentActivity() {
                                         }
                                     },
                                     onChangeAvatar = {
-                                        // TODO: Implement Avatar Picker
+                                        navController.navigate("avatar_picker")
                                     }
                                 )
                             }
+                        }
+                        composable("avatar_picker") {
+                            AvatarPickerScreen(
+                                viewModel = viewModel,
+                                onBack = { navController.popBackStack() }
+                            )
                         }
                     }
                 }
             }
         }
     }
-}
+}
