@@ -2,6 +2,7 @@ package com.pec.filippov.api
 
 import com.pec.filippov.data.LoginRequest
 import com.pec.filippov.data.Student
+import com.pec.filippov.data.UploadResponse
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.*
@@ -18,7 +19,7 @@ interface StudentApi {
     suspend fun uploadAvatar(
         @Path("code") code: String,
         @Part file: MultipartBody.Part
-    ): Response<Student>
+    ): Response<UploadResponse>
 
     @GET("api/qr/db-check")
     suspend fun checkDb(): Response<Map<String, Any>>

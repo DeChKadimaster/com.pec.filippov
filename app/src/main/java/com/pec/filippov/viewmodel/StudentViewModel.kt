@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pec.filippov.api.StudentApi
@@ -67,7 +68,8 @@ class StudentViewModel : ViewModel() {
             _isLoading.value = true
             _error.value = null
             try {
-                val studentCode = _student.value?.hash ?: _student.value?.id ?: run {
+                // Use internal ID for API path, as hash is likely for consumer-facing scans
+                val studentCode = _student.value?.id ?: run {
                     _error.value = "Студент не авторизован"
                     return@launch
                 }
@@ -82,7 +84,8 @@ class StudentViewModel : ViewModel() {
                     }
 
                     // 2. Calculate sample size (target max 1200px)
-                    options.inSampleSize = calculateInSampleSize(options, 1200, 1200)
+                    val reqSize = 1200
+                    options.inSampleSize = calculateInSampleSize(options, reqSize, reqSize)
                     options.inJustDecodeBounds = false
 
                     // 3. Decode scaled bitmap
@@ -92,7 +95,7 @@ class StudentViewModel : ViewModel() {
 
                     // 4. Compress to JPEG under 1MB
                     val stream = ByteArrayOutputStream()
-                    var quality = 85
+                    var quality = 80
                     bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream)
                     
                     while (stream.size() > 1024 * 1024 && quality > 10) {
@@ -106,19 +109,80 @@ class StudentViewModel : ViewModel() {
                 }
 
                 if (imagePart == null) {
-                    _error.value = "Не удалось обработать изображение"
+                    _error.value = "Не удалось подготовить изображение"
                     return@launch
                 }
 
                 val response = api.uploadAvatar(studentCode, imagePart)
                 if (response.isSuccessful) {
-                    _student.value = response.body()
-                    onComplete()
+                    val updateResponse = api.getStudent(studentCode)
+                    if (updateResponse.isSuccessful) {
+                        _student.value = updateResponse.body()
+                        onComplete()
+                    } else {
+                        _error.value = "Загружено успешно, но профиль обновится позже"
+                    }
                 } else {
-                    _error.value = "Ошибка загрузки: ${response.message()}"
+                    val errorMsg = response.errorBody()?.string() ?: response.message()
+                    _error.value = "Ошибка сервера: $errorMsg"
                 }
             } catch (e: Throwable) {
-                _error.value = "Ошибка при загрузке: ${e.localizedMessage ?: "Неизвестная ошибка"}"
+                e.printStackTrace()
+                _error.value = "Ошибка при загрузке: ${e.localizedMessage ?: e.javaClass.simpleName}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun uploadAvatarFromBitmap(context: Context, bitmap: Bitmap, onComplete: () -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val studentCode = _student.value?.id ?: run {
+                    _error.value = "Студент не авторизован"
+                    return@launch
+                }
+
+                val imagePart = withContext(Dispatchers.IO) {
+                    if (bitmap.isRecycled) return@withContext null
+                    
+                    val stream = ByteArrayOutputStream()
+                    var quality = 80
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream)
+                    
+                    while (stream.size() > 1024 * 1024 && quality > 10) {
+                        stream.reset()
+                        quality -= 10
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream)
+                    }
+
+                    val requestFile = stream.toByteArray().toRequestBody("image/jpeg".toMediaTypeOrNull())
+                    MultipartBody.Part.createFormData("file", "avatar.jpg", requestFile)
+                }
+
+                if (imagePart == null) {
+                    _error.value = "Не удалось подготовить изображение"
+                    return@launch
+                }
+                
+                val response = api.uploadAvatar(studentCode, imagePart)
+                if (response.isSuccessful) {
+                    val updateResponse = api.getStudent(studentCode)
+                    if (updateResponse.isSuccessful) {
+                        _student.value = updateResponse.body()
+                        onComplete()
+                    } else {
+                        _error.value = "Загружено успешно, но профиль обновится позже"
+                    }
+                } else {
+                    val errorMsg = response.errorBody()?.string() ?: response.message()
+                    _error.value = "Ошибка сервера: $errorMsg"
+                }
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                _error.value = "Ошибка при загрузке: ${e.localizedMessage ?: e.javaClass.simpleName}"
             } finally {
                 _isLoading.value = false
             }

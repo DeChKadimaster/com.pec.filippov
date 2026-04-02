@@ -1,6 +1,9 @@
 package com.pec.filippov
 
 import android.os.Bundle
+import android.os.Looper
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -15,13 +18,30 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.pec.filippov.ui.screens.LoginScreen
 import com.pec.filippov.ui.screens.ProfileScreen
-import com.pec.filippov.ui.screens.AvatarPickerScreen
+import com.pec.filippov.ui.screens.InfoScreen
 import com.pec.filippov.ui.theme.PECQRTheme
 import com.pec.filippov.viewmodel.StudentViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // ГЛОБАЛЬНЫЙ ПЕРЕХВАТЧИК ОШИБОК ДЛЯ ДИАГНОСТИКИ
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            try {
+                Looper.prepare()
+                Toast.makeText(
+                    this,
+                    "КРАШ: ${throwable.localizedMessage}\n${Log.getStackTraceString(throwable).take(200)}...",
+                    Toast.LENGTH_LONG
+                ).show()
+                Log.e("CRASH_DIAG", "Fatal error", throwable)
+                Thread.sleep(3000)
+            } catch (e: Exception) {}
+            defaultHandler?.uncaughtException(thread, throwable)
+        }
+
         enableEdgeToEdge()
         setContent {
             PECQRTheme {
@@ -32,9 +52,9 @@ class MainActivity : ComponentActivity() {
                 val isLoading by viewModel.isLoading.collectAsState()
                 val error by viewModel.error.collectAsState()
 
-                // Automatic navigation when logged in
+                // Automatic navigation when logged in (Fixed loop)
                 LaunchedEffect(student) {
-                    if (student != null) {
+                    if (student != null && navController.currentDestination?.route != "profile") {
                         navController.navigate("profile") {
                             popUpTo("login") { inclusive = true }
                         }
@@ -58,23 +78,26 @@ class MainActivity : ComponentActivity() {
                             student?.let { currentStudent ->
                                 ProfileScreen(
                                     student = currentStudent,
+                                    viewModel = viewModel,
                                     onBack = { 
                                         viewModel.logout()
                                         navController.navigate("login") {
                                             popUpTo("profile") { inclusive = true }
                                         }
                                     },
-                                    onChangeAvatar = {
-                                        navController.navigate("avatar_picker")
+                                    onLearnMoreClick = {
+                                        navController.navigate("info")
                                     }
                                 )
                             }
                         }
-                        composable("avatar_picker") {
-                            AvatarPickerScreen(
-                                viewModel = viewModel,
-                                onBack = { navController.popBackStack() }
-                            )
+                        composable("info") {
+                            student?.let { currentStudent ->
+                                InfoScreen(
+                                    student = currentStudent,
+                                    onBack = { navController.popBackStack() }
+                                )
+                            }
                         }
                     }
                 }

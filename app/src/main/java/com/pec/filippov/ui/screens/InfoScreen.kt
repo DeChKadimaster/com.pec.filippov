@@ -1,19 +1,14 @@
 package com.pec.filippov.ui.screens
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.util.Base64
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -21,30 +16,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.style.TextOverflow
 import com.pec.filippov.data.Student
-import com.pec.filippov.viewmodel.StudentViewModel
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.qrcode.QRCodeWriter
 
 @Composable
-fun ProfileScreen(
+fun InfoScreen(
     student: Student,
-    viewModel: StudentViewModel,
-    onBack: () -> Unit,
-    onLearnMoreClick: () -> Unit
+    onBack: () -> Unit
 ) {
     val skyBlue = Color(0xFF6797FF)
-    val buttonBlue = Color(0xFF4C84FF)
-    var showAvatarPicker by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -63,7 +49,6 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
@@ -74,27 +59,25 @@ fun ProfileScreen(
                         modifier = Modifier.size(32.dp)
                     )
                 }
-                
-                Button(
-                    onClick = { showAvatarPicker = true },
-                    colors = ButtonDefaults.buttonColors(containerColor = buttonBlue),
-                    shape = RoundedCornerShape(20.dp),
-                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp)
-                ) {
-                    Text("изменить", color = Color.White, fontSize = 16.sp)
-                }
+                Text(
+                    text = "Дополнительно",
+                    color = Color.White,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Avatar with white border
+            // Avatar at the top (New)
             val avatarBitmap = remember(student.avatarBase64) {
                 decodeBase64ToBitmap(student.avatarBase64)
             }
 
             Box(
                 modifier = Modifier
-                    .size(200.dp)
+                    .size(160.dp)
                     .border(2.dp, Color.White, CircleShape)
                     .padding(4.dp)
                     .clip(CircleShape)
@@ -112,83 +95,29 @@ fun ProfileScreen(
                     Text(
                         text = student.fullName.take(1).uppercase(),
                         color = Color.White,
-                        fontSize = 80.sp,
+                        fontSize = 60.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                text = student.fullName,
-                color = Color.White,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Normal,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 24.dp)
-            )
-            
-
             Spacer(modifier = Modifier.height(30.dp))
 
-            // Info Card Style (Screenshot 4)
+            // Info Card
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
                     .clip(RoundedCornerShape(40.dp))
                     .background(Color.White.copy(alpha = 0.15f))
-                    .padding(vertical = 12.dp)
+                    .padding(24.dp)
             ) {
-                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(bottom = 16.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(Color.White.copy(alpha = 0.3f))
-                            .clickable { onLearnMoreClick() }
-                            .padding(horizontal = 16.dp, vertical = 4.dp)
-                    ) {
-                        Text("узнать больше", color = Color.White, fontSize = 14.sp)
-                    }
-
-                    InfoRow(label = "группа", value = student.course)
-                    InfoRow(label = "орг", value = student.organization)
-                    InfoRow(label = "курс", value = "${student.course[0]} курс")
+                Column {
+                    InfoRow(label = "куратор", value = "Поливанова Е. В.")
+                    InfoRow(label = "срок обуч.", value = "01.09.23 — 01.09.27")
+                    InfoRow(label = "ном.тел", value = "+7(901)-788-27-38")
+                    InfoRow(label = "специальность", value = student.specialty)
                 }
             }
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-            // QR Code (Enlarged)
-            val qrBitmap = remember(student.hash, student.id) {
-                generateQRCode(student.hash ?: student.id)
-            }
-
-            if (qrBitmap != null) {
-                Surface(
-                    modifier = Modifier.size(250.dp),
-                    color = Color.White,
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Box(modifier = Modifier.padding(8.dp)) {
-                        Image(
-                            bitmap = qrBitmap.asImageBitmap(),
-                            contentDescription = "QR Code",
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                }
-            }
-        }
-
-        // Avatar Picker Content Layer (Overlay)
-        if (showAvatarPicker) {
-            AvatarPickerScreen(
-                viewModel = viewModel,
-                onBack = { showAvatarPicker = false }
-            )
         }
     }
 }
@@ -227,4 +156,3 @@ private fun InfoRow(label: String, value: String) {
         HorizontalDivider(color = Color.White, thickness = 1.dp)
     }
 }
-

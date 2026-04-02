@@ -4,7 +4,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
 import com.google.zxing.BarcodeFormat
+import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
+import java.util.EnumMap
 
 fun decodeBase64ToBitmap(base64Str: String?): Bitmap? {
     if (base64Str == null) return null
@@ -24,7 +26,9 @@ fun decodeBase64ToBitmap(base64Str: String?): Bitmap? {
 fun generateQRCode(text: String): Bitmap? {
     val writer = QRCodeWriter()
     return try {
-        val bitMatrix = writer.encode(text, BarcodeFormat.QR_CODE, 512, 512)
+        val hints = EnumMap<EncodeHintType, Any>(EncodeHintType::class.java)
+        hints[EncodeHintType.MARGIN] = 0
+        val bitMatrix = writer.encode(text, BarcodeFormat.QR_CODE, 512, 512, hints)
         val width = bitMatrix.width
         val height = bitMatrix.height
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)

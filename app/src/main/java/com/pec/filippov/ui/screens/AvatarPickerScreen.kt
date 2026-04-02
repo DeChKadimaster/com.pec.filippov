@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -70,15 +70,30 @@ fun AvatarPickerScreen(
                 .clickable(enabled = false) {}, // Prevent click propagation
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Main Avatar Preview Area
+            // Main Action Area (Transparent/No Card)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(Color(0xFF1A1A2E)) // Dark blue-black
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Header Row with Back Button
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 val avatarBitmap = remember(student?.avatarBase64) {
                     decodeBase64ToBitmap(student?.avatarBase64)
                 }
@@ -156,29 +171,45 @@ fun AvatarPickerScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Avatar Grid (Placeholders matching screenshot)
-                val avatarPlaceholders = listOf(1, 2, 3, 4, 5, 6, 7, 8)
+                // Avatar Grid (Actual avatars)
+                val avatarResList = listOf(
+                    com.pec.filippov.R.drawable.avatar_1,
+                    com.pec.filippov.R.drawable.avatar_2,
+                    com.pec.filippov.R.drawable.avatar_3,
+                    com.pec.filippov.R.drawable.avatar_4,
+                    com.pec.filippov.R.drawable.avatar_5,
+                    com.pec.filippov.R.drawable.avatar_6,
+                    com.pec.filippov.R.drawable.avatar_7,
+                    com.pec.filippov.R.drawable.avatar_8
+                )
                 Column {
-                    val rows = avatarPlaceholders.chunked(4)
+                    val rows = avatarResList.chunked(4)
                     rows.forEach { row ->
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceAround
                         ) {
-                            row.forEach { _ ->
+                            row.forEach { resId ->
                                 Box(
                                     modifier = Modifier
                                         .size(60.dp)
                                         .clip(CircleShape)
                                         .background(Color(0xFFE0E0E0))
                                         .border(2.dp, Color.White, CircleShape)
+                                        .clickable(enabled = !isLoading) {
+                                            val bitmap = BitmapFactory.decodeResource(context.resources, resId)
+                                            if (bitmap != null) {
+                                                viewModel.uploadAvatarFromBitmap(context, bitmap) {
+                                                    onBack()
+                                                }
+                                            }
+                                        }
                                 ) {
-                                    // In a real app, these would be drawables
-                                    Icon(
-                                        imageVector = Icons.Default.AccountCircle,
+                                    Image(
+                                        painter = androidx.compose.ui.res.painterResource(id = resId),
                                         contentDescription = null,
-                                        tint = Color.Gray,
-                                        modifier = Modifier.fillMaxSize().padding(4.dp)
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
                                     )
                                 }
                             }
