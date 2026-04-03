@@ -30,85 +30,127 @@ fun InfoScreen(
     student: Student,
     onBack: () -> Unit
 ) {
-    val skyBlue = Color(0xFF6797FF)
+    val backgroundColor = Color(0xFF5187F3) // Lighter background
+    val cardColor = Color(0x9B105BEF) // Darker card
+    val buttonColor = Color(0x59105BEF)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(skyBlue)
+            .background(backgroundColor)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+                .padding(16.dp)
                 .padding(bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header Row
-            Row(
+            // First Card: Header and Avatar
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.White,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-                Text(
-                    text = "Дополнительно",
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 12.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Avatar at the top (New)
-            val avatarBitmap = remember(student.avatarBase64) {
-                decodeBase64ToBitmap(student.avatarBase64)
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(160.dp)
-                    .border(2.dp, Color.White, CircleShape)
-                    .padding(4.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
-            ) {
-                if (avatarBitmap != null) {
-                    Image(
-                        bitmap = avatarBitmap.asImageBitmap(),
-                        contentDescription = "Avatar",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Text(
-                        text = student.fullName.take(1).uppercase(),
-                        color = Color.White,
-                        fontSize = 60.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-            // Info Card
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
                     .clip(RoundedCornerShape(40.dp))
-                    .background(Color.White.copy(alpha = 0.15f))
+                    .background(cardColor)
+                    .padding(bottom = 24.dp)
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    // Header Row inside card
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.White,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                        Text(
+                            text = "Дополнительно",
+                            color = Color.White,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 12.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // Avatar with Arc
+                    val avatarBitmap = remember(student.avatarBase64) {
+                        decodeBase64ToBitmap(student.avatarBase64)
+                    }
+
+                    Box(
+                        modifier = Modifier.size(200.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Decorative Arc (Vertical orientation on the left)
+                        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                            drawArc(
+                                color = Color.White,
+                                startAngle = 90f,
+                                sweepAngle = 180f,
+                                useCenter = false,
+                                style = androidx.compose.ui.graphics.drawscope.Stroke(
+                                    width = 3.dp.toPx(),
+                                    cap = androidx.compose.ui.graphics.StrokeCap.Round
+                                )
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .size(150.dp)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(alpha = 0.1f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (avatarBitmap != null) {
+                                Image(
+                                    bitmap = avatarBitmap.asImageBitmap(),
+                                    contentDescription = "Avatar",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Text(
+                                    text = student.fullName.take(1).uppercase(),
+                                    color = Color.White,
+                                    fontSize = 60.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = student.fullName,
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Second Card: Info Rows
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(40.dp))
+                    .background(cardColor)
                     .padding(24.dp)
             ) {
                 Column {

@@ -42,102 +42,140 @@ fun ProfileScreen(
     onBack: () -> Unit,
     onLearnMoreClick: () -> Unit
 ) {
-    val skyBlue = Color(0xFF6797FF)
-    val buttonBlue = Color(0xFF4C84FF)
+    val backgroundColor = Color(0xFF5187F3) // Lighter background
+    val cardColor = Color(0x9B105BEF) // Darker card
+    val buttonColor = Color(0x59105BEF)
+    
     var showAvatarPicker by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(skyBlue)
+            .background(backgroundColor)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+                .padding(16.dp)
                 .padding(bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header Row
-            Row(
+            // Top Card (Unified Header)
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 24.dp, start = 16.dp, end = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color.White,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-                
-                Button(
-                    onClick = { showAvatarPicker = true },
-                    colors = ButtonDefaults.buttonColors(containerColor = buttonBlue),
-                    shape = RoundedCornerShape(20.dp),
-                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp)
-                ) {
-                    Text("изменить", color = Color.White, fontSize = 16.sp)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Avatar with white border
-            val avatarBitmap = remember(student.avatarBase64) {
-                decodeBase64ToBitmap(student.avatarBase64)
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(200.dp)
-                    .border(2.dp, Color.White, CircleShape)
-                    .padding(4.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
-            ) {
-                if (avatarBitmap != null) {
-                    Image(
-                        bitmap = avatarBitmap.asImageBitmap(),
-                        contentDescription = "Avatar",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Text(
-                        text = student.fullName.take(1).uppercase(),
-                        color = Color.White,
-                        fontSize = 80.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                text = student.fullName,
-                color = Color.White,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Normal,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 24.dp)
-            )
-            
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-            // Info Card Style (Screenshot 4)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
                     .clip(RoundedCornerShape(40.dp))
-                    .background(Color.White.copy(alpha = 0.15f))
+                    .background(cardColor)
+                    .padding(bottom = 24.dp)
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    // Header Row inside card
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.White,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                        
+                        Button(
+                            onClick = { showAvatarPicker = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
+                            shape = RoundedCornerShape(20.dp),
+                            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp)
+                        ) {
+                            Text("изменить", color = Color.White, fontSize = 16.sp)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Avatar with Arc
+                    val avatarBitmap = remember(student.avatarBase64) {
+                        decodeBase64ToBitmap(student.avatarBase64)
+                    }
+
+                    Box(
+                        modifier = Modifier.size(220.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Decorative Arc (Vertical orientation on the left)
+                        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                            drawArc(
+                                color = Color.White,
+                                startAngle = 90f,
+                                sweepAngle = 180f,
+                                useCenter = false,
+                                style = androidx.compose.ui.graphics.drawscope.Stroke(
+                                    width = 3.dp.toPx(),
+                                    cap = androidx.compose.ui.graphics.StrokeCap.Round
+                                )
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .size(170.dp)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(alpha = 0.1f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (avatarBitmap != null) {
+                                Image(
+                                    bitmap = avatarBitmap.asImageBitmap(),
+                                    contentDescription = "Avatar",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Text(
+                                    text = student.fullName.take(1).uppercase(),
+                                    color = Color.White,
+                                    fontSize = 70.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = student.fullName,
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                    
+                    Text(
+                        text = student.issueDate,
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Normal,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Info Card Style (Middle Section)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(1f)
+                    .clip(RoundedCornerShape(40.dp))
+                    .background(cardColor)
                     .padding(vertical = 12.dp)
             ) {
                 Column(modifier = Modifier.padding(horizontal = 20.dp)) {
@@ -146,31 +184,31 @@ fun ProfileScreen(
                             .align(Alignment.CenterHorizontally)
                             .padding(bottom = 16.dp)
                             .clip(RoundedCornerShape(20.dp))
-                            .background(Color.White.copy(alpha = 0.3f))
+                            .background(buttonColor)
                             .clickable { onLearnMoreClick() }
-                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                            .padding(horizontal = 20.dp, vertical = 6.dp)
                     ) {
-                        Text("узнать больше", color = Color.White, fontSize = 14.sp)
+                        Text("узнать больше", color = Color.White, fontSize = 16.sp)
                     }
 
-                    InfoRow(label = "группа", value = student.course)
+                    InfoRow(label = "группа", value = student.specialty)
                     InfoRow(label = "орг", value = student.organization)
-                    InfoRow(label = "курс", value = "${student.course[0]} курс")
+                    InfoRow(label = "курс", value = "${student.course} курс")
                 }
             }
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // QR Code (Enlarged)
+            // QR Code (As is, but centered)
             val qrBitmap = remember(student.hash, student.id) {
                 generateQRCode(student.hash ?: student.id)
             }
 
             if (qrBitmap != null) {
                 Surface(
-                    modifier = Modifier.size(250.dp),
+                    modifier = Modifier.size(240.dp),
                     color = Color.White,
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(4.dp)
                 ) {
                     Box(modifier = Modifier.padding(8.dp)) {
                         Image(
